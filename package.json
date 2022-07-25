@@ -22,7 +22,12 @@
     "express": "^4.18.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.4.6",
+<<<<<<< HEAD
     "multer": "^1.4.5-lts.1",
     "nodemon": "^2.0.19"
+=======
+    "nodemon": "^2.0.19",
+    "validator": "^13.7.0"
+>>>>>>> eada1fba0e3701e24c704f6ca8713c6d2d136ca0
   }
 }
