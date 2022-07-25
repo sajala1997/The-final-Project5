@@ -1,9 +1,16 @@
 const express = require("express")
 const router = express.Router()
-const userController = require('../controllers/userController')
+const userController = require('../controllers/userController');
+const { createUser, loginUser } = require("../controllers/userController");
 
+const {AuthenticationCheck, BodyValidation} = require("../middleware/Authentication");
 
-router.post('/register',userController.createUser )
+const { AuthorizationCheck } = require("../middleware/Authorization");
+
+//*-----------------------------------**User Create**--------------------------------------------------------
+router.post('/register',userController.createUser,BodyValidation);
+//*-----------------------------------**User Login**--------------------------------------------------------
+router.post("/login",userController.loginUser,BodyValidation); 
 
 
 
