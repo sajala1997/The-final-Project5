@@ -12,6 +12,8 @@ router.post('/register',userController.createUser,BodyValidation);
 //*-----------------------------------**User Login**--------------------------------------------------------
 router.post("/login",userController.loginUser,BodyValidation); 
 
+router.get('/user/:userId/profile',userController.getUser )
+
 
 
 module.exports=router

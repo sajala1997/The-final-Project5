@@ -61,7 +61,7 @@ try {
     if (findUser.password !== req.body.password) {
     return res
         .status(401)
-        .send({ status: false, message: "Incorrect password" });
+        .send({ status: false, message: "Incorrectpassword" });
     }
 
     //Token Generation
