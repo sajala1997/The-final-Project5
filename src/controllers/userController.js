@@ -6,7 +6,7 @@ const {uploadFile}=require("../cloudComputing/aws")
 const { keyValue,isValid,isValidEmail,passwordRegex ,phoneRegex,isValidName} = require("../validators/validator");
 const jwt = require("jsonwebtoken");
 //const {AuthenticationCheck, AuthorizationCheck}= require("../middleware/auth")
-const bcrypt = require ('bcrypt');
+
 
 const createUser = async (req, res) => {
     try {
