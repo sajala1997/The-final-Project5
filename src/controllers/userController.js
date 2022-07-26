@@ -5,8 +5,8 @@ const bcrypt = require("bcrypt")
 const {uploadFile}=require("../cloudComputing/aws")
 const { keyValue,isValid,isValidEmail,passwordRegex ,phoneRegex,isValidName} = require("../validators/validator");
 const jwt = require("jsonwebtoken");
-const {AuthenticationCheck, AuthorizationCheck}= require("../middleware/auth")
-
+//const {AuthenticationCheck, AuthorizationCheck}= require("../middleware/auth")
+const bcrypt = require ('bcrypt');
 
 const createUser = async (req, res) => {
     try {
@@ -175,7 +175,7 @@ const getUser = async function (req, res) {
 
         let data=req.params.userId
         if(!data)return res.status(400).send({status:false,msg:"please enter user id"})
-        //if (!isValidObjectId(data))  return res.status(400).send({ status: false, data: "please provide correct id" })
+        if (!isValidObjectId(data))  return res.status(400).send({ status: false, data: "please provide correct id" })
         let findUser=await userModel.findOne({_id:data})
         if(!findUser)return res.status(404).send({status:false, meg:"No Data Found For this ID"})
         let findUsers=await userModel.find(({ _id:data })).select({isDeleted:0,createdAt:0,updatedAt:0, __v:0})
