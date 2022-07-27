@@ -19,7 +19,7 @@ const createUser = async (req, res) => {
         finalDetails["profileImage"]=uploadedFileURL
     }
     else{
-        res.status(400).send({ msg: "No file found" })
+         return res.status(400).send({status : false, msg: "No Profile Image found" })
     }
        // const finalDetails = { fname, lname, email, profileImage, password, phone, address }
     //     let savedData = await userModel.create(finalDetails)

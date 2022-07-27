@@ -89,5 +89,15 @@ const passwordRegex = function checkPassword(password)
       return true;
   }
 
+  const priceRegex = (value) => {
+    let priceRegex = /^\d{1,8}(?:\.\d{1,4})?$/;
+    if (priceRegex.test(value))
+      return true;
+  }
 
-module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex}
+  // const isValidAvailableSizes = (title) => {
+  //   return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1
+  // };
+  
+
+module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex, priceRegex}
