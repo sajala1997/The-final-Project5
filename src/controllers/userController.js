@@ -3,7 +3,7 @@ const userModel = require('../models/userModel')
 const secretKey = "Project5-Group3";
 const bcrypt = require("bcrypt")
 const {uploadFile}=require("../cloudComputing/aws")
-const { keyValue,isValid,isValidEmail,passwordRegex ,phoneRegex,isValidName} = require("../validators/validator");
+const { keyValue,isValid,isValidEmail,passwordRegex ,phoneRegex,isValidName,isValidObjectId,pincodeRegex} = require("../validators/validator");
 const jwt = require("jsonwebtoken");
 //const {AuthenticationCheck, AuthorizationCheck}= require("../middleware/auth")
 
@@ -73,12 +73,14 @@ const createUser = async (req, res) => {
         return res.status(400).send({ status: false, messege: "invalid password" })
     }
 
-    const salt= await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password,salt)
-    req.body.password=hashedPassword
-    console.log(password)
-    console.log( req.body.password)
-    console.log(hashedPassword)
+    req.body.password = await bcrypt.hash(password,10);
+
+    // const salt= await bcrypt.genSalt(10)
+    // const hashedPassword = await bcrypt.hash(password,salt)
+    // req.body.password=hashedPassword
+    // console.log(password)
+    // console.log( req.body.password)
+    // console.log(hashedPassword)
     
     console.log(req.body["address.shipping.street"])
     
@@ -91,6 +93,9 @@ const createUser = async (req, res) => {
     if(!req.body["address.shipping.pincode"]){
         return res.status(400).send({status:false, message:"please provide shipping pincode"})
     }
+    if (!pincodeRegex(req.body["address.shipping.pincode"])) {
+        return res.status(400).send({ status: false, messege: "invalid shipping pincode" })
+    }
     if(!req.body["address.billing.street"]){
         return res.status(400).send({status:false, message:"please provide billing street"})
     }
@@ -100,6 +105,11 @@ const createUser = async (req, res) => {
     if(!req.body["address.billing.pincode"]){
         return res.status(400).send({status:false, message:"please provide billing pincode"})
     }
+    if (!pincodeRegex(req.body["address.billing.pincode"])) {
+        return res.status(400).send({ status: false, messege: "invalid billing pincode" })
+    }
+
+    
 
   
         
@@ -146,11 +156,26 @@ const loginUser = async function (req, res) {
             .status(401)
             .send({ status: false, message: "Incorrect email Id" });
         }
-        if (findUser.password !== req.body.password) {
-        return res
-            .status(401)
-            .send({ status: false, message: "Incorrectpassword" });
-        }
+        // if (findUser.password !== req.body.password) {
+        // return res
+        //     .status(401)
+        //     .send({ status: false, message: "Incorrectpassword" });
+        // }
+       
+        // let hashedPassword = await bcrypt.compare(password, hash)
+        // console.log(password)
+        // console.log(findUser.password)
+        // console.log(hashPassword)
+        //        if (!hashedPassword) return res.status(404).send({status: false, msg: "Login failed! Wrong password."});
+
+        // bcrypt.compare(req.body.password, hashedPassword, function(err, result) {
+        //     if (result) {
+        //       console.log("It matches!")
+        //     }
+        //     else {
+        //       console.log("Invalid password!");
+        //     }
+        //   });
     
         //Token Generation
     
@@ -158,11 +183,11 @@ const loginUser = async function (req, res) {
             userId: findUser._id.toString() ,
             iat:Math.floor(new Date().getTime()/1000)},
          secretKey, {
-          expiresIn: 120, // token expire date
+          expiresIn: "1h", // token expire date
         });
     
         // req.header("x-api-key", token); //setting headers
-        return res.status(200).send({status: true,message: "login successfully",data: { token: token },
+        return res.status(200).send({status: true,message: "login successfully",data: { userId:findUser._id.toString(), token: token },
         });
     } catch (error) {
         res.status(500).send({ status: false, Error: error.message });
@@ -176,17 +201,116 @@ const getUser = async function (req, res) {
         let data=req.params.userId
         if(!data)return res.status(400).send({status:false,msg:"please enter user id"})
         if (!isValidObjectId(data))  return res.status(400).send({ status: false, data: "please provide correct id" })
+
+        if(req.loggedInUserId != data) {
+            return res.status(401).send({ status: false, msg: "Unauthorize! userId doesnot match"})
+        }
+       // return res.status(200).send({status:true,message:'User list',Data:findUsers})
+        
         let findUser=await userModel.findOne({_id:data})
         if(!findUser)return res.status(404).send({status:false, meg:"No Data Found For this ID"})
-        let findUsers=await userModel.find(({ _id:data })).select({isDeleted:0,createdAt:0,updatedAt:0, __v:0})
+       // let findUsers=await userModel.find(({ _id:data })).select({isDeleted:0,createdAt:0,updatedAt:0, __v:0})
        
-        return res.status(200).send({status:true,message:'User list',Data:findUsers})
+        return res.status(200).send({status:true,message:'User list',Data:findUser})
 }
 catch (err) {
     console.log(err)
     res.status(500).send({ status: false, msg: err.message })
 }
 }
+
+
+const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.userId
+        let files = req.files
+
+        
+        if (!keyValue(userId)) {
+             return res.status(400).send({ status: false, message: "please provide userid to update details of user" });}
+
+        if (!isValidObjectId(userId)) {
+          return res.status(400).send({ status: false, message: "invalid user id "}) }
+
+        //   req.loggedInUserId = decodedToken._id
+        // if (req.loggedInUserId!=userId)
+        //  {return res.status(403).send({status: false,message: "user is Unauthorized" }); }
+        
+
+
+        const userFind = await userModel.findById({ _id:userId })
+
+        if (!userFind) return res.status(404).send({ status: false, message: "User not found" })
+
+        let data = req.body
+
+        const { fname, lname, email, phone, address, password } = data
+         req.body.address= JSON.parse(address)
+        
+        if (!keyValue(data)) {
+            return res.status(400).send({ status: false, message: "please provide user data to update" })
+        }
+
+        if (fname) {
+            if (!isValidName(fname)) {
+                return res.status(400).send({ status: false, message: " please provide valid First Name " })
+            }
+        }
+
+        if (lname) {
+            if (!isValidName(lname)) {
+                return res.status(400).send({ status: false, message: "please provide valid last Name " })
+            }
+        }
+
+        if (email) {
+            if (!isValidEmail(email)) {
+                return res.status(400).send({ status: false, message: " invalid Email ID " })
+            }
+        }
+
+        let isDuplicateEmail = await userModel.findOne({ email })
+        if (isDuplicateEmail) {
+            return res.status(400).send({ status: false, message: "email already exists" })
+        }
+
+        if(files && files.length>0){
+            let uploadedFileURL= await uploadFile( files[0] )
+            finalDetails["profileImage"]=uploadedFileURL
+        }
+       
+        if (phone) {
+            if (!phoneRegex(phone)) {
+                return res.status(400).send({ status: false, message: "Please Send Valid Phone Number " })
+            }
+        }
+        let duplicatePhone = await userModel.findOne({ phone })        // DB Call
+
+        if (duplicatePhone) return res.status(400).send({ status: false, msg: "phone number is already registered!" }) 
+        
+        if (password) {
+            if (!passwordRegex(password)) {
+                return res.status(400).send({ status: false, message: "Password Length should be between 8 and 15" })
+            }
+            // generate salt to hash password
+                                                               
+            req.body.password = await bcrypt.hash(password,10);
+        }
+
+        
+
+        const updateData=req.body
+        const update = await userModel.findOneAndUpdate({ _id:userId},{ $set:updateData },{ new: true })
+       
+        return res.status(200).send({ status: true, message: "User Profile updated", data: update })
+    }
+    catch (error) {
+        res.status(500).send({ status: false, message: error.message })
+    }
+}
+
+
 module.exports.createUser=createUser
 module.exports.getUser=getUser
 module.exports.loginUser=loginUser
+module.exports.updateUser=updateUser

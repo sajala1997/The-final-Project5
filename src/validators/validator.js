@@ -83,4 +83,11 @@ const passwordRegex = function checkPassword(password)
       return true;
   }
 
-module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex}
+  const pincodeRegex = (value) => {
+    let pincodeRegex = /^[1-9][0-9]{5}$/;
+    if (pincodeRegex.test(value))
+      return true;
+  }
+
+
+module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex}
