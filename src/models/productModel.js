@@ -29,7 +29,6 @@ const productSchema = new mongoose.Schema( {
         default : false
         
     },
-    
     style :{
         type: String
     },
@@ -37,7 +36,7 @@ const productSchema = new mongoose.Schema( {
 
     },
     installments:{
-
+        type : Number
     },
     deletedAt :{
         type : Date

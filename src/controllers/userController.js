@@ -156,27 +156,12 @@ const loginUser = async function (req, res) {
             .status(401)
             .send({ status: false, message: "Incorrect email Id" });
         }
-        // if (findUser.password !== req.body.password) {
-        // return res
-        //     .status(401)
-        //     .send({ status: false, message: "Incorrectpassword" });
-        // }
        
-        // let hashedPassword = await bcrypt.compare(password, hash)
-        // console.log(password)
-        // console.log(findUser.password)
-        // console.log(hashPassword)
-        //        if (!hashedPassword) return res.status(404).send({status: false, msg: "Login failed! Wrong password."});
+       
+        let hashedPassword = await bcrypt.compare(password, findUser.password)
+        
+        if (!hashedPassword) return res.status(404).send({status: false, msg: "Login failed! Wrong password."});
 
-        // bcrypt.compare(req.body.password, hashedPassword, function(err, result) {
-        //     if (result) {
-        //       console.log("It matches!")
-        //     }
-        //     else {
-        //       console.log("Invalid password!");
-        //     }
-        //   });
-    
         //Token Generation
     
         var token = jwt.sign({ 
