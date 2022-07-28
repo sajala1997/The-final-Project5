@@ -207,93 +207,129 @@ catch (err) {
 
 const updateUser = async (req, res) => {
     try {
-        const userId = req.params.userId
-        let files = req.files
+        let userId = req.params.userId
 
-        
-        if (!keyValue(userId)) {
-             return res.status(400).send({ status: false, message: "please provide userid to update details of user" });}
+        if (!userId)
+         return res.status(400).send({ status: false, message: 'pls give a userId in params' })
+        if (!isValidObjectId(userId))
+         return res.status(400).send({ status: false, message: 'pls give a valid userId in params' })
 
-        if (!isValidObjectId(userId)) {
-          return res.status(400).send({ status: false, message: "invalid user id "}) }
+        let user = await userModel.findById(userId)
+        if (!user)
+        return res.status(404).send({ status: false, message: 'sorry, No such user exists with this Id' })
 
-        //   req.loggedInUserId = decodedToken._id
-        // if (req.loggedInUserId!=userId)
-        //  {return res.status(403).send({status: false,message: "user is Unauthorized" }); }
-        
+        let body = req.body;
+        let { fname, lname, email, profileImage, phone, password, address, shipping, billing } = body;
+        if (Object.keys(body).length === 0 && req.files == undefined) return res.status(400).send({ status: false, message: 'please enter body' })
+       // pending work in files isvalidfiles
+       //if (isValidBody(body)) return res.status(400).send({ status: false, message: 'please enter body' })
 
-
-        const userFind = await userModel.findById({ _id:userId })
-
-        if (!userFind) return res.status(404).send({ status: false, message: "User not found" })
-
-        let data = req.body
-
-        const { fname, lname, email, phone, address, password } = data
-         req.body.address= JSON.parse(address)
-        
-        if (!keyValue(data)) {
-            return res.status(400).send({ status: false, message: "please provide user data to update" })
-        }
-
+        let obj = {};
+        if(fname =="") return res.status(400).send({status:false, message: "Don't leave fname Empty"})
         if (fname) {
-            if (!isValidName(fname)) {
-                return res.status(400).send({ status: false, message: " please provide valid First Name " })
-            }
+            if (!isValid(fname)) return res.status(400).send({ status: false, message: "Don't leave fname Empty" })
+            if (!isValidName(fname)) return res.status(400).send({ status: false, message: "Pls Enter Valid fname" })
+            obj.fname = fname
         }
-
+        if(lname =="") return res.status(400).send({status:false, message: "Don't leave lname Empty"})
         if (lname) {
-            if (!isValidName(lname)) {
-                return res.status(400).send({ status: false, message: "please provide valid last Name " })
-            }
+            if (!isValid(lname)) return res.status(400).send({ status: false, message: "Don't leave lname Empty" })
+            if (!isValidName(lname)) return res.status(400).send({ status: false, message: "Pls Enter Valid lname" })
+            obj.lname = lname
         }
-
+        if(email =="") return res.status(400).send({status:false, message: "Don't leave email Empty"})
         if (email) {
-            if (!isValidEmail(email)) {
-                return res.status(400).send({ status: false, message: " invalid Email ID " })
+            if (!isValid(email)) return res.status(400).send({ status: false, message: "Don't leave email Empty" })
+            if (!isValidEmail(email)) return res.status(400).send({ status: false, message: "Pls Enter Valid email" })
+            if (await userModel.findOne({ email })) return res.status(400).send({ status: false, message: "this email has already been used" })
+            obj.email = email
+        }
+        if (profileImage) {
+            let files = req.files
+            if (!(files && files.length > 0)) {
+                return res.status(400).send({ status: false, message: " Please Provide The Profile Image" });
             }
+            const uploadedBookImage = await uploadFile(files[0])
+            obj.profileImage = uploadedBookImage
         }
-
-        let isDuplicateEmail = await userModel.findOne({ email })
-        if (isDuplicateEmail) {
-            return res.status(400).send({ status: false, message: "email already exists" })
-        }
-
-        if(files && files.length>0){
-            let uploadedFileURL= await uploadFile( files[0] )
-            finalDetails["profileImage"]=uploadedFileURL
-        }
-       
+        if(phone =="") return res.status(400).send({status:false, message: "Don't leave phone Empty"})
         if (phone) {
-            if (!phoneRegex(phone)) {
-                return res.status(400).send({ status: false, message: "Please Send Valid Phone Number " })
-            }
+            if (!isValid(phone)) return res.status(400).send({ status: false, message: "Don't leave phone number Empty" })
+            if (!phoneRegex(phone)) return res.status(400).send({ status: false, message: "Pls Enter Valid phone number" })
+            if (await userModel.findOne({ phone })) return res.status(400).send({ status: false, message: "this phone number has already been used" })
+            obj.phone = phone
         }
-        let duplicatePhone = await userModel.findOne({ phone })        // DB Call
-
-        if (duplicatePhone) return res.status(400).send({ status: false, msg: "phone number is already registered!" }) 
-        
+        if(password =="") return res.status(400).send({status:false, message: "Don't leave password Empty"})
         if (password) {
-            if (!passwordRegex(password)) {
-                return res.status(400).send({ status: false, message: "Password Length should be between 8 and 15" })
-            }
-            // generate salt to hash password
-                                                               
-            req.body.password = await bcrypt.hash(password,10);
+            if (!isValid(password)) return res.status(400).send({ Status: false, message: " password is required" })
+            if (!passwordRegex(password)) return res.status(400).send({ Status: false, message: " Please enter a valid password, minlength 8, maxxlength 15" })
+            // //generate salt to hash password
+            // const salt = await bcrypt.genSalt(10);
+            // now we set user password to hashed password
+            bcryptedPassword = await bcrypt.hash(password,10);
+            obj.password = bcryptedPassword
         }
+        if(address =="") return res.status(400).send({status:false, message: "Don't leave address Empty"})
+        if ("address" in body) {
+            // address = JSON.stringify(address)
+            //address = JSON.parse(address)
 
-        
 
-        const updateData=req.body
-        const update = await userModel.findOneAndUpdate({ _id:userId},{ $set:updateData },{ new: true })
-       
-        return res.status(200).send({ status: true, message: "User Profile updated", data: update })
+            if (!address || Object.keys(address).length === 0) {
+                return res.status(400).send({ status: false, message: "Please enter address and it should be in object!!" })
+            }
+            //  address = JSON.stringify(address)
+            let addresss = JSON.parse(address)
+            const { shipping, billing } = addresss
+            if ("shipping" in addresss) {
+                const { street, city, pincode } = shipping
+                if ("street" in shipping) {
+                    if (!isValid(street)) {
+                        return res.status(400).send({ status: false, message: "street is not valid" })
+                    }
+                    obj["addresss.shipping.street"] = street
+                }
+                if ("city" in shipping) {
+                    if (!isValid(city)) return res.status(400).send({ status: false, message: "city is not valid" })
+                    if(!isValidName(city)) return res.status(400).send({ status: false, message: "city name is not in valid format" })
+                    
+                    obj["addresss.shipping.city"] = city
+                }
+                if ("pincode" in shipping) {
+                    if (!isValid(pincode)) return res.status(400).send({ status: false, message: "pincode is not valid" })
+                    if (!pincodeRegex(pincode)) return res.status(400).send({ status: false, message: "pincode is not in valid format" })
+                    obj["addresss.shipping.pincode"] = pincode
+                }
+            }
+
+            if ("billing" in addresss) {
+                const { street, city, pincode } = billing
+                if ("street" in billing) {
+                    if (!isValid(street)) return res.status(400).send({ status: false, message: "street is not valid" })
+                    obj["addresss.billing.street"] = street
+                }
+
+                if ("city" in billing) {
+                    if (!isValid(city)) return res.status(400).send({ status: false, message: "city is not valid" })
+                    if(!isValidName(city)) return res.status(400).send({ status: false, message: "city name is not in valid format" })
+                    obj["addresss.billing.city"] = city
+                }
+                if ("pincode" in billing) {
+                    if (!isValid(pincode)) return res.status(400).send({ status: false, message: "shipping pincode is not valid" })
+                        if (!pincodeRegex(pincode)) return res.status(400).send({ status: false, message: "pincode is not in valid format" })
+                        obj["addresss.billing.pincode"] = pincode
+                    }
+                }
+                obj["address"] = addresss
+            }
+    
+            let updatedUser = await userModel.findOneAndUpdate({ _id: userId }, { $set: obj }, { new: true })
+            res.status(200).send({ status: true, message: "User profile updated", data: updatedUser })
+    
+        } catch (error) {
+            res.status(500).send({ status: false, message: error.message })
+       }
     }
-    catch (error) {
-        res.status(500).send({ status: false, message: error.message })
-    }
-}
-
 
 module.exports.createUser=createUser
 module.exports.getUser=getUser
