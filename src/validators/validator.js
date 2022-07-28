@@ -103,10 +103,16 @@ const passwordRegex = function checkPassword(password)
     return (correctSize.includes(Size))
 }
 
+const regex = /\d/;
+const isVerifyNumber = function (number) {
+    let   trimNumber=number.trim()
+    return regex.test(trimNumber)
+} 
+
 
   // const isValidAvailableSizes = (title) => {
   //   return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1
   // };
   
 
-module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex, priceRegex,isValidSize}
+module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex, priceRegex,isValidSize,isVerifyNumber }

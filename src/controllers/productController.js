@@ -1,7 +1,7 @@
 const getSymbolFromCurrency = require('currency-symbol-map')
 const productModel= require("../models/productModel")
 const {uploadFile}=require("../cloudComputing/aws")
-const { keyValue,isValid,isValidName,priceRegex,isValidObjectId,isValidSize} = require("../validators/validator");
+const { keyValue,isValid,isValidName,priceRegex,isValidObjectId,isValidSize,isVerifyNumber} = require("../validators/validator");
 
 
 const createProduct = async (req, res) => {
@@ -39,6 +39,8 @@ const createProduct = async (req, res) => {
     }
     else
     return res.status(400).send({ status: true, msg: "Please provide the currencyId INR"});
+    if(style)
+    data.style= style
     if(files && files.length>0){
     let uploadedFileURL= await uploadFile( files[0] )
     data["productImage"]=uploadedFileURL
@@ -139,10 +141,90 @@ const getProduct = async function (req, res) {
         res.status(500).send({ msg:err.message})
     }
 }
+let updateProduct=async function (req,res){
+    try {
+        let body=req.body 
+        let product=req.params.productId 
+        const findProduct = await productModel.findOne({_id:product,isDeleted:false})
+        if(!findProduct) return res.status(404).send({ status: false, msg:"No product found"  })
+        let {  title, description, price, currencyId, isFreeShipping, productImage, style, availableSizes, installments } = body
+        console.log(Object.keys(body))
+        if (Object.keys(body).length === 0 && req.files == undefined) return res.status(400).send({ status: false, message: 'please enter body' })
+        
+        let obj = {};
+        if(title =="") return res.status(400).send({status:false, message: "Don't leave title Empty"})
+        if (title) {
+            if (!isValid(title)) return res.status(400).send({ status: false, message: "Don't leave title Empty" })
+            if (!isValidName(title)) return res.status(400).send({ status: false, message: "Pls Enter Valid title" })
+            let isDuplicateTitle = await productModel.findOne({ title })
+            if (isDuplicateTitle) {
+            return res.status(400).send({ status: false, message: "title already exists" })
+            }
+            obj.title = title
+        }
+        if(description =="") return res.status(400).send({status:false, message: "Don't leave description Empty"})
+        if (description) {
+            if (!isValid(description)) return res.status(400).send({ status: false, message: "Don't leave description Empty" })
+            if (!isValidName(description)) return res.status(400).send({ status: false, message: "Pls Enter Valid description" })
+            obj.description = description
+        }
+        if(price =="") return res.status(400).send({status:false, message: "Don't leave price Empty"})
+        if (price) {
+            if (!isValid(price)) return res.status(400).send({ status: false, message: "Don't leave price empty" })
+            if (!priceRegex(price)) return res.status(400).send({ status: false, message: "Pls Enter Valid price" })
+            obj.price = price
+        }
+        if(isFreeShipping =="") return res.status(400).send({status:false, message: "Don't leave price Empty"})
+        if (isFreeShipping) {
+            if (!isValid(isFreeShipping)) return res.status(400).send({ status: false, message: "Don't leave isFreeShipping empty" })
+            if(!(isFreeShipping== "true" || isFreeShipping=="false")) return res.status(400).send({ status: false, message: "pls enter valid shipping " })
+            obj.isFreeShipping = isFreeShipping
+        }
+
+        if (productImage) {
+            let files = req.files
+            if (!(files && files.length > 0)) {
+                return res.status(400).send({ status: false, message: " Please Provide The product Image" });
+            }
+            const uploadedProductImage = await uploadFile(files[0])
+            obj.productImage = uploadedProductImage
+        }
+        if(style =="") return res.status(400).send({status:false, message: "Don't leave style Empty"})
+        if (style) {
+            if (!isValid(style)) return res.status(400).send({ status: false, message: "Don't leave style empty" })
+            obj.style = style
+        }
+        if(availableSizes =="") return res.status(400).send({status:false, message: "Don't leave availableSizes Empty"})
+        if (availableSizes) {
+            if (!isValid(availableSizes)) return res.status(400).send({ status: false, message: "Don't leave availableSizes empty" })
+            availableSizes = availableSizes.split(',').map(x => x.trim().toUpperCase())
+            if (availableSizes.map(x => isValidSize(x)).filter(x => x === false).length !== 0) return res.status(400).send({ status: false, message: "Size Should be Among  S,XS,M,X,L,XXL,XL" })
+            obj.availableSizes = availableSizes
+        }
+        if(installments =="") return res.status(400).send({status:false, message: "Don't leave installments Empty"})
+        if (installments) {
+            if (!isValid(installments)) return res.status(400).send({ status: false, message: "Don't leave installments empty" })
+    
+            obj.installments = installments
+        }
+
+
+        let updatedProduct = await productModel.findOneAndUpdate({ _id: product }, { $set: obj }, { new: true })
+        res.status(200).send({ status: true, message: "product updated", data: updatedProduct })
+
+        
+    
+        
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).send({ status: false, msg: error.message })
+    }
+} 
 
 module.exports.createProduct=createProduct
 module.exports.getByProductId=getByProductId
 module.exports.deleteProduct=deleteProduct
 module.exports.getProduct=getProduct
+module.exports.updateProduct=updateProduct
 
 
