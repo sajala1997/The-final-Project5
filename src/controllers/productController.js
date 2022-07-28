@@ -100,6 +100,9 @@ const deleteProduct = async function (req, res) {
     try {
         let product = req.params.productId
         console.log(product)
+        if (!isValidObjectId(product)) {
+            return res.status(400).send({ status: false, msg: "productId is invalid" });
+        }
         const check = await productModel.findById(product)
         if(check.isDeleted==true) return res.status(404).send({ status: false, msg: "Product is already deleted" })
         let deletedProduct = await productModel.findByIdAndUpdate(  { _id: product }, {$set: { isDeleted: true,deletedAt:new Date() }})
@@ -145,6 +148,9 @@ let updateProduct=async function (req,res){
     try {
         let body=req.body 
         let product=req.params.productId 
+        if (!isValidObjectId(product)) {
+            return res.status(400).send({ status: false, msg: "productId is invalid" });
+        }
         const findProduct = await productModel.findOne({_id:product,isDeleted:false})
         if(!findProduct) return res.status(404).send({ status: false, msg:"No product found"  })
         let {  title, description, price, currencyId, isFreeShipping, productImage, style, availableSizes, installments } = body
