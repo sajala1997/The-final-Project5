@@ -94,10 +94,19 @@ const passwordRegex = function checkPassword(password)
     if (priceRegex.test(value))
       return true;
   }
+  // const isValidSize= (value) => {
+  //   let correctSize =["S", "XS","M","X", "L","XXL", "XL"]
+  //   return (correctSize.includes(value))
+  // }
+  const isValidSize = (Size) => {
+    let correctSize = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+    return (correctSize.includes(Size))
+}
+
 
   // const isValidAvailableSizes = (title) => {
   //   return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1
   // };
   
 
-module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex, priceRegex}
+module.exports = {isValid,isValidObjectId,isValidEmail,keyValue,phoneRegex,isValidName,passwordRegex,pincodeRegex, priceRegex,isValidSize}
