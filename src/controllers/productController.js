@@ -112,33 +112,33 @@ const deleteProduct = async function (req, res) {
 
 };
 
+/(kl)/
 
 const getProduct = async function (req, res) {
     try {
-        const filter = {};
+        const filter = {isDeleted:false};
         if(req.body.UserId){
-        if(!isValidObjectId(req.body.UserId)) return res.status(400).send({status:false,msg:"enter valid UserId"})}
-        
-        let  product = await productModel.find({$and:[req.body,{isDeleted:false}]})
-            if (product.length > 0) {
-                res.status(200).send({ status: true, message: 'Success', data:product })
-            }
-            else {
-                res.status(404).send({ status: false, msg: "No product found" })
-            }
-            if (req.body.UserId){
+        if(!isValidObjectId(req.body.UserId)) return res.status(400).send({status:false,msg:"enter valid UserId"})};
+        let price = {}
 
-            }else{
-                filter.userId = product.userId;
-            }
-            //if (product.availableSizes) {
-              //  filter.availableSizes = product.availableSizes;
-            //}
+        console.log(parseInt(req.query.priceGreaterThan));
+        !isNaN(parseInt(req.query.priceGreaterThan)) && (price.$gt = parseInt(req.query.priceGreaterThan))
+        !isNaN(parseInt(req.query.priceLessThan)) && (price.$lt = parseInt(req.query.priceLessThan))
+        filter.price = price
+        if(req.query.size!==undefined &&req.query.size.split()){
+            (filter.availableSizes = {$in: req.query.size.split(",").map(e=>e.trim())})
+        }
+        // req.query.size!==undefined && req.query.size.split() && (filter.availableSizes = {$all: req.query.size.split(",").map(e=>e.trim())});
+        req.query.name && req.query.name.trim() && (filter.title = {'$regex': new RegExp(req.query.name)})
+        let products = await productModel.find(filter).sort({price:1});
+
+        return res.status(200).send({ status:true,data:products})
     }
     catch (err) {
         res.status(500).send({ msg:err.message})
     }
 }
+
 
 module.exports.createProduct=createProduct
 module.exports.getByProductId=getByProductId

@@ -81,38 +81,39 @@ const createUser = async (req, res) => {
     // console.log(password)
     // console.log( req.body.password)
     // console.log(hashedPassword)
+
+    address  = JSON.parse(req.body.address)
     
-    console.log(req.body["address.shipping.street"])
     
-    if(!req.body["address.shipping.street"]){
+
+    if(!address.shipping.street){
         return res.status(400).send({status:false, message:"please provide shipping street"})
     }
-    if(!req.body["address.shipping.city"]){
+    if(!address.shipping.city){
         return res.status(400).send({status:false, message:"please provide shipping city"})
     }
-    if(!req.body["address.shipping.pincode"]){
+    if(!address.shipping.pincode){
         return res.status(400).send({status:false, message:"please provide shipping pincode"})
     }
-    if (!pincodeRegex(req.body["address.shipping.pincode"])) {
+    if (!pincodeRegex(address.shipping.pincode)) {
         return res.status(400).send({ status: false, messege: "invalid shipping pincode" })
     }
-    if(!req.body["address.billing.street"]){
+    if(!address.billing.street){
         return res.status(400).send({status:false, message:"please provide billing street"})
     }
-    if(!req.body["address.billing.city"]){
+    if(!address.billing.city){
         return res.status(400).send({status:false, message:"please provide billing city"})
     }
-    if(!req.body["address.billing.pincode"]){
+    if(!address.billing.pincode){
         return res.status(400).send({status:false, message:"please provide billing pincode"})
     }
-    if (!pincodeRegex(req.body["address.billing.pincode"])) {
+    if (!pincodeRegex(address.billing.pincode)) {
         return res.status(400).send({ status: false, messege: "invalid billing pincode" })
     }
 
-    
-
-  
-        
+     
+     finalDetails.address = address
+     console.log(finalDetails)
     let savedData = await userModel.create(finalDetails)
     return res.status(201).send({ status: true, msg: "user created successfully", data: savedData });
     }
@@ -217,7 +218,8 @@ const updateUser = async (req, res) => {
         let user = await userModel.findById(userId)
         if (!user)
         return res.status(404).send({ status: false, message: 'sorry, No such user exists with this Id' })
-
+        if(userId !== req.loggedInUserId)
+             return res.status(403).send({status:false,msg:"Not Authorised"})
         let body = req.body;
         let { fname, lname, email, profileImage, phone, password, address, shipping, billing } = body;
         if (Object.keys(body).length === 0 && req.files == undefined) return res.status(400).send({ status: false, message: 'please enter body' })

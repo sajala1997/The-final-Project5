@@ -79,18 +79,18 @@ const passwordRegex = function checkPassword(password)
 
   const phoneRegex = (value) => {
     let mobileRegex = /^[6-9]\d{9}$/;
-    if (mobileRegex.test(value))
+    let mobileRegex1 = /^([0|\+[0-9]{1,5})?([7-9][0-9]{9})$/
+    if (mobileRegex1.test(value))
       return true;
   }
 
   const pincodeRegex = (value) => {
-    let pincodeRegex = /^[1-9][0-9]{5}$/;
-    if (pincodeRegex.test(value))
-      return true;
+    return /^[1-9][0-9]{5}$/.test(value)
   }
 
   const priceRegex = (value) => {
     let priceRegex = /^\d{1,8}(?:\.\d{1,4})?$/;
+
     if (priceRegex.test(value))
       return true;
   }

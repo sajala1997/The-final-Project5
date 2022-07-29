@@ -6,10 +6,10 @@ const {AuthenticationCheck}= require("../middleware/auth")
 
 
 //user
-router.post('/register',userController.createUser )
+router.post('/register',userController.createUser )  //Done
 router.post('/login', userController.loginUser)
 router.get('/user/:userId/profile',AuthenticationCheck,userController.getUser )
-router.put('/user/:userId/profile',userController.updateUser)
+router.put('/user/:userId/profile',AuthenticationCheck, userController.updateUser)
 
 //product
 router.post('/products',productController.createProduct )
