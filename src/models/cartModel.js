@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const ObjectId= mongoose.Schema.Types.ObjectId
 
 
 
@@ -16,7 +17,7 @@ const cartSchema = new mongoose.Schema( {
         comment:"Holds total number of items in the cart" 
     },
     items:[
-        {productId:{type:OBjectId,ref:'Product',require:true,unique:true}
+        {productId:{type:ObjectId,ref:'Product',require:true,unique:true}
         ,quantity:{type : Number,require:true,min:1}}
     ],
 
