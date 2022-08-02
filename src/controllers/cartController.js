@@ -11,7 +11,7 @@
     try{
     let userId=req.params.userId
     let productId=req.body.productId
-    let quantity=req.body.quantity
+    let quantity=req.body.quantity||1
 
     if (!validator.isValidObjectId(userId)) {
         return res.status(400).send({ status: false, msg: "userId is invalid" });
@@ -45,7 +45,7 @@
             items: [{productId,quantity}],
             totalPrice: findProduct.price*quantity,
             totalQuantity:quantity,
-            totalItems: 1})
+            totalItems: 1}).populate('items.productId',{__v:0})
         return res.status(201).send({status:true, message:"Success", data:savedData})
     }
 
@@ -59,14 +59,14 @@
         return true;
         }
     })){
-        const savedData = await cartModel.findOneAndUpdate({_id:cartExist._id},update,{new:true, "arrayFilters": [{ "element.productId": productId}]})
+        const savedData = await cartModel.findOneAndUpdate({_id:cartExist._id},update,{new:true, "arrayFilters": [{ "element.productId": productId}]}).populate('items.productId',{__v:0})
     
         return res.status(201).send({status:true, message:"Success", data:savedData})
     }
 
     update.$inc = {totalPrice:(findProduct.price*quantity),totalItems:1,totalQuantity:quantity}
     update.$push = {items:{productId,quantity}}
-    const savedData = await cartModel.findOneAndUpdate({_id:cartExist._id},update,{new:true})
+    const savedData = await cartModel.findOneAndUpdate({_id:cartExist._id},update,{new:true}).populate('items.productId',{__v:0})
     return res.status(201).send({status:true, message:"Success", data:savedData})
 
     }
@@ -94,46 +94,62 @@
             let product;
             if(!(product = await productModel.findById(req.body.productId)) || product.isDeleted==true)
             return res.status(404).send({status:false,message:"Product DoesNot Exist"})
-
-            if(!(await cartModel.findOne({userId:user._id})))
-            return res.status(404).send({status:false,message:"Cart DoesNot Exist"})
             let cart;
+            if(!(cart = await cartModel.findOne({userId:user._id})))
+            return res.status(404).send({status:false,message:"Cart DoesNot Exist"})
+            
             if(req.body.removeKey==0){
+
+                let productQuantity;
+            
+                cart.items.forEach((x)=>{
+                
+                    if(x.productId.toString()==product._id)
+                       productQuantity = x.quantity;
+                })
+
+               
+                if(productQuantity===undefined) return res.status(404).send({status:false,message:"Product not In Cart"})
                 let update = {}
-                    update.$inc = { totalPrice:-(product.price*'items.$[element].quantity'),
-                    totalQuantity:-'items.$[element].quantity',
+                    update.$inc = { totalPrice:-(product.price*productQuantity),
+                    totalQuantity:-productQuantity,
                     totalItems:-1
                 }
-                update.$subtract = 
                 
-            cart = await cartModel.findOneAndUpdate({userId:user._id},{$pull:{items:{productId:product._id}},$inc:update.$inc},{new:true,"arrayFilters": [ { "element.productId": product._id }]})
+            cart = await cartModel.findOneAndUpdate({userId:user._id},{$pull:{items:{productId:product._id}},$inc:update.$inc},{new:true,"arrayFilters": [ { "element.productId": product._id }]},{__v:0}).populate('items.productId',{__v:0})
             res.status(200).send({status:true, message:"Success",data:cart});
             }
+
+
+
+
 // removeKey==1
             cart = await cartModel.findOne({userId:user._id});
             let productQuantity
-            if(cart.items.find((x)=>{
+            cart.items.forEach((x)=>{
                 if(x.productId.toString() == product._id){
                     productQuantity = x.quantity;
-                return true;
+                
                 }
-            })){
+            })
+                console.log(productQuantity)
+                if(productQuantity===undefined) return res.status(404).send({status:false,message:"Product not In Cart"})
 
                 if(productQuantity==1)
-                    cart = await cartModel.findOneAndUpdate({_id:cart._id},{$inc:{totalQuantity:-1,totalItems:-1,totalPrice:-product.price},"$pull": { "items": { "productId": product._id } }},{new:true})
+                    cart = await cartModel.findOneAndUpdate({_id:cart._id},{$inc:{totalQuantity:-1,totalItems:-1,totalPrice:-product.price},"$pull": { "items": { "productId": product._id } }},{new:true}).populate('items.productId',{__v:0})
                     
                 else{
                     let update = {}
                            update.$inc = { totalPrice:-product.price,
                            totalQuantity:-1,
                            'items.$[element].quantity':-1}
-                    cart = await cartModel.findOneAndUpdate({_id:cart._id},update,{new:true, "arrayFilters": [ { "element.productId": product._id }]})
+                    cart = await cartModel.findOneAndUpdate({_id:cart._id},update,{new:true, "arrayFilters": [ { "element.productId": product._id }]}).populate('items.productId',{__v:0})
                 }
 
                 if(cart.totalItems==0)
-                    cart = await cartModel.findOneAndUpdate({_id:cart._id},{totalPrice:0},{new:true})
+                    cart = await cartModel.findOneAndUpdate({_id:cart._id},{totalPrice:0},{new:true}).populate('items.productId',{__v:0})
                 return res.status(201).send({status:true, message:"Success", data:cart})
-            }
+            
 
         } catch (err) {
             res.status(500).send({status:false,message:err.message})
@@ -154,9 +170,9 @@
             let user;
             if(!(user = await userModel.findById(req.params.userId)))
             return res.status(404).send({status:false,message:"User DoesNot Exist"})
-            console.log(user)
+           
             let cart;
-            if(!(cart = await cartModel.findOne({userId:user._id})))
+            if(!(cart = await cartModel.findOne({userId:user._id},{__v:0}).populate('items.productId',{__v:0})))
             return res.status(404).send({status:false,message:"Cart DoesNot Exist"})
             
             res.status(200).send({status:true,data:cart})
