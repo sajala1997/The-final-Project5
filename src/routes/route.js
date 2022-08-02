@@ -22,8 +22,8 @@ router.put('/products/:productId', productController.updateProduct)
 // Cart
 router.post('/users/:userId/cart',cartController.addToCart);
 router.put('/users/:userId/cart',cartController.updateCart);
-router.get('/users/:userId/cart',AuthenticationCheck,cartController.getCart);
-router.delete('/users/:userId/cart',AuthenticationCheck,cartController.deleteCart);
+router.get('/users/:userId/cart',cartController.getCart);
+router.delete('/users/:userId/cart',cartController.deleteCart);
 
 
 
