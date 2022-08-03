@@ -2,17 +2,17 @@ const mongoose = require('mongoose');
 
 
 
-const cartSchema = new mongoose.Schema( {
+const orderSchema = new mongoose.Schema( {
     totalPrice:{
         type:Number,
         require:true,
-        comment:"Holds total price of all the items in the cart"
+        comment:"Holds total price of all the items in the order"
 
     },
     totalItems:{
         type:Number,
         require:true,
-        comment:"Holds total number of items in the cart" 
+        comment:"Holds total number of items in the order" 
     },
     totalQuantity:{
         type:Number,
@@ -29,11 +29,36 @@ const cartSchema = new mongoose.Schema( {
            unique:true,
            required:true,
 
-    }
+    },
+
+    cancellable:{
+        type:Boolean,
+        default: true
+    },
+    
+    status:{
+        type:String,
+        default: 'pending',
+        enum: ['pending', 'completed', 'cancled']
+    },
+
+    deletedAt:{
+        type : Date
+    }, 
+
+    isDeleted: {
+        type:Boolean,
+        default: false
+    },
+
+
+
+
+
 }
     ,{ timestamps: true });
 
 // 
 
 
-    module.exports = mongoose.model('Cart',cartSchema);
+    module.exports = mongoose.model('Order',cartSchema);
