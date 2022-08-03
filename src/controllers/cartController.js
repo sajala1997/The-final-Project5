@@ -125,14 +125,14 @@
 
 // removeKey==1
             cart = await cartModel.findOne({userId:user._id});
-            let productQuantity
+            let productQuantity;
             cart.items.forEach((x)=>{
                 if(x.productId.toString() == product._id){
                     productQuantity = x.quantity;
                 
                 }
             })
-                console.log(productQuantity)
+                
                 if(productQuantity===undefined) return res.status(404).send({status:false,message:"Product not In Cart"})
 
                 if(productQuantity==1)
