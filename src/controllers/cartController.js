@@ -45,7 +45,7 @@
             items: [{productId,quantity}],
             totalPrice: findProduct.price*quantity,
             totalQuantity:quantity,
-            totalItems: 1}).populate('items.productId',{__v:0})
+            totalItems: 1})//.select({__v:0})//.populate('items.productId',{__v:0})
         return res.status(201).send({status:true, message:"Success", data:savedData})
     }
 
@@ -111,13 +111,14 @@
                
                 if(productQuantity===undefined) return res.status(404).send({status:false,message:"Product not In Cart"})
                 let update = {}
-                    update.$inc = { totalPrice:-(product.price*productQuantity),
+                    update.inc = { totalPrice:-(product.price*productQuantity),
                     totalQuantity:-productQuantity,
                     totalItems:-1
                 }
+               
                 
-            cart = await cartModel.findOneAndUpdate({userId:user._id},{$pull:{items:{productId:product._id}},$inc:update.$inc},{new:true,"arrayFilters": [ { "element.productId": product._id }]},{__v:0}).populate('items.productId',{__v:0})
-            res.status(200).send({status:true, message:"Success",data:cart});
+            cart = await cartModel.findOneAndUpdate({_id:cart._id},{$inc:update.inc,"$pull": { "items": { "productId": product._id } }},{new:true}).select({__v:0}).populate('items.productId',{__v:0})
+            return res.status(200).send({status:true, message:"Success",data:cart});
             }
 
 
@@ -125,14 +126,14 @@
 
 // removeKey==1
             cart = await cartModel.findOne({userId:user._id});
-            let productQuantity
+            let productQuantity;
             cart.items.forEach((x)=>{
                 if(x.productId.toString() == product._id){
                     productQuantity = x.quantity;
                 
                 }
             })
-                console.log(productQuantity)
+                
                 if(productQuantity===undefined) return res.status(404).send({status:false,message:"Product not In Cart"})
 
                 if(productQuantity==1)
@@ -152,7 +153,7 @@
             
 
         } catch (err) {
-            res.status(500).send({status:false,message:err.message})
+           return res.status(500).send({status:false,message:err.message})
         }
 
 
@@ -175,7 +176,7 @@
             if(!(cart = await cartModel.findOne({userId:user._id},{__v:0}).populate('items.productId',{__v:0})))
             return res.status(404).send({status:false,message:"Cart DoesNot Exist"})
             
-            res.status(200).send({status:true,data:cart})
+            return res.status(200).send({status:true,data:cart})
 
         } catch (err) {
             res.status(500).send({status:false,message:err.message})
@@ -185,7 +186,7 @@
     const deleteCart = async (req,res)=>{
         try {
             if(!validator.isValidObjectId(req.params.userId))
-                res.status(403).send({status:false,message:"Invalid UserId"})
+                return res.status(400).send({status:false,message:"Invalid UserId"})
             // if(req.loggedInUserId!==req.params.userId)
             //     return res.status(403).send({status:false,message:"Autherization Failed"})
             
@@ -197,9 +198,9 @@
             return res.status(404).send({status:false,message:"Cart DoesNot Exist"})
             
             let cart = await cartModel.findOneAndUpdate({userId:user._id},{totalPrice:0,totalItems:0,items:[],totalQuantity:0},{new:true})
-            res.status(200).send({status:true,message:"Success",data:cart})
+            return res.status(200).send({status:true,message:"Success",data:cart})
         } catch (err) {
-            res.status(500).send({status:false,message:err.message})
+            return res.status(500).send({status:false,message:err.message})
         }
     }
 
