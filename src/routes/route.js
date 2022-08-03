@@ -4,6 +4,7 @@ const userController = require('../controllers/userController')
 const productController= require('../controllers/productController')
 const {AuthenticationCheck}= require("../middleware/auth")
 const cartController = require('../controllers/cartController');
+const orderController= require('../controllers/orderController')
 
 
 //user
@@ -24,6 +25,8 @@ router.post('/users/:userId/cart',cartController.addToCart);
 router.put('/users/:userId/cart',cartController.updateCart);
 router.get('/users/:userId/cart',cartController.getCart);
 router.delete('/users/:userId/cart',cartController.deleteCart);
+
+router.post('/users/:userId/orders',orderController.createOrder);
 
 
 
