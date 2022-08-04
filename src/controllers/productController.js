@@ -121,27 +121,62 @@ const deleteProduct = async function (req, res) {
 
 const getProduct = async function (req, res) {
     try {
-        const filter = {isDeleted:false};
-        if(req.body.UserId){
-        if(!isValidObjectId(req.body.UserId)) return res.status(400).send({status:false,msg:"enter valid UserId"})};
+        const filter = { isDeleted: false };
+        let data = req.query
+        const { size, name } = data;
         let price = {}
 
-        console.log(parseInt(req.query.priceGreaterThan));
-        !isNaN(parseInt(req.query.priceGreaterThan)) && (price.$gt = parseInt(req.query.priceGreaterThan))
-        !isNaN(parseInt(req.query.priceLessThan)) && (price.$lt = parseInt(req.query.priceLessThan))
-        filter.price = price
-        if(req.query.size!==undefined &&req.query.size.split()){
-            (filter.availableSizes = {$in: req.query.size.split(",").map(e=>e.trim())})
-        }
-        // req.query.size!==undefined && req.query.size.split() && (filter.availableSizes = {$all: req.query.size.split(",").map(e=>e.trim())});
-        req.query.name && req.query.name.trim() && (filter.title = {'$regex': new RegExp(req.query.name)})
-        let products = await productModel.find(filter).sort({price:1});
+        //---------------------------------filter by size-----------------------------
+        if (data.size !== undefined && data.size.split()) {
+            (filter.availableSizes = { $in: data.size.split(",").map(e => e.trim().toUpperCase()) })
 
-        return res.status(200).send({ status:true,data:products})
+              if (!isValidSize(size))
+               return res.status(400).send({ status: false, message: "please Provide Available Size from [S, XS ,M ,X, L ,XXL, XL]" });
+        }
+
+        //-------------------------------filter by priceGreaterThan & priceLessThan--------------------------
+      //  console.log(parseInt(data.priceGreaterThan));
+        if (data.priceGreaterThan) {
+
+            if (isNaN(parseInt(data.priceGreaterThan)))
+                return res.status(400).send({ status: false, message: "invalid price" })
+
+            if (!isNaN(parseInt(data.priceGreaterThan))) {
+                price.$gt = parseInt(data.priceGreaterThan)
+            }
+            filter.price = price
+        }
+
+        if (data.priceLessThan) {
+            if (isNaN(parseInt(data.priceLessThan)))
+                return res.status(400).send({ status: false, message: "invalid price " })
+
+            if (!isNaN(parseInt(data.priceLessThan))) {
+                price.$lt = parseInt(data.priceLessThan)
+            }
+            filter.price = price
+        }
+       
+
+
+        //--------------------------------filter by name(title)-------------------------------
+        if (data.name) {
+        data.name.trim() && (filter.title = { '$regex': new RegExp(data.name), $options: "i" })
+
+        if (!isValidName(name)) return res.status(400).send({ status: false, msg: "please provide valid name" });
     }
+    //---------------------------------------------db call-----------------------------
+    const products = await productModel.find(filter).sort({ price: 1 });
+   
+
+    //       if(!products.length==0){
+    //          return res.status(404).send({ status:false,msg:"No product found with the given keys" });
+    //   }
+    return res.status(200).send({ status: true, data: products })
+}
     catch (err) {
-        res.status(500).send({ msg:err.message})
-    }
+    res.status(500).send({ msg: err.message })
+}
 }
 let updateProduct=async function (req,res){
     try {

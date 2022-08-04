@@ -12,116 +12,126 @@ const createUser = async (req, res) => {
     try {
         let finalDetails = req.body
         let files = req.files
+
         let { fname, lname, email, password, phone, address } = finalDetails
-        
-       if(files && files.length>0){
-        let uploadedFileURL= await uploadFile( files[0] )
-        finalDetails["profileImage"]=uploadedFileURL
-    }
-    else{
-         return res.status(400).send({status : false, msg: "No Profile Image found" })
-    }
-       // const finalDetails = { fname, lname, email, profileImage, password, phone, address }
-    //     let savedData = await userModel.create(finalDetails)
-    //    let { fname, lname, email, password, phone, address } = details
 
-       if (!keyValue(finalDetails)) {
-        return res.status(400).send({ status: false, message: "please provide user data" })
+
+        if (!keyValue(finalDetails)) {
+            return res.status(400).send({ status: false, message: "please provide user data" })
+        }
+
+        if (!isValid(fname)) {
+            return res.status(400).send({ status: false, messege: "please provide name" })
+        }
+        if (!isValidName(fname)) {
+            return res.status(400).send({ status: false, messege: "please provide correct name" })
+        }
+        if (!isValid(lname)) {
+            return res.status(400).send({ status: false, messege: "please provide lname" })
+        }
+        if (!isValidName(lname)) {
+            return res.status(400).send({ status: false, messege: "please provide correct lname" })
+        }
+
+        if (!isValid(email)) {
+            return res.status(400).send({ status: false, messege: "please provide email" })
+        }
+
+        if (!isValidEmail(email)) {
+            return res.status(400).send({ status: false, message: "Please provide valid Email Address" });
+        }
+
+        let isDuplicateEmail = await userModel.findOne({ email })
+        if (isDuplicateEmail) {
+            return res.status(400).send({ status: false, message: "email already exists" })
+        }
+
+        if (!isValid(phone)) {
+            return res.status(400).send({ status: false, messege: "please provide phone number" })
+        }
+        if (!phoneRegex(phone)) {
+            return res.status(400).send({ status: false, msg: "phone number is invalid!" })
+        }
+        let duplicatePhone = await userModel.findOne({ phone })        // DB Call
+
+        if (duplicatePhone) return res.status(400).send({ status: false, msg: "phone number is already registered!" })
+
+        if (!isValid(password)) {
+            return res.status(400).send({ status: false, messege: "please provide password" })
+        }
+
+        if (!passwordRegex(password)) {
+            return res.status(400).send({ status: false, messege: "invalid password" })
+        }
+
+        req.body.password = await bcrypt.hash(password, 10);
+
+
+        if (files && files.length > 0) {
+            let uploadedFileURL = await uploadFile(files[0])
+            finalDetails["profileImage"] = uploadedFileURL
+        }
+        else {
+            return res.status(400).send({ status: false, msg: "No Profile Image found" })
+        }
+
+        if (!isValid(address)) return res.status(400).send({ status: false, message: "please provide address" })
+
+        if (address) {
+
+            address = JSON.parse(address)
+            console.log(address)
+            const { shipping, billing } = address
+
+            if (address.shipping) {
+                const { street, city, pincode } = shipping
+                if (!shipping.street) return res.status(400).send({ status: false, message: "please provide shipping street" })
+                if (!isValid(street)) return res.status(400).send({ status: false, message: "street is not valid" })
+
+
+                if (!shipping.city) { return res.status(400).send({ status: false, message: "please provide shipping city" }) }
+                if (!isValid(city)) return res.status(400).send({ status: false, message: "city is not valid" })
+                if (!isValidName(city)) return res.status(400).send({ status: false, message: "city name is not in valid format" })
+
+
+                if (!shipping.pincode) { return res.status(400).send({ status: false, message: "please provide shipping pincode" }) }
+                if (!isValid(pincode)) return res.status(400).send({ status: false, message: "pincode is not valid" })
+                if (!pincodeRegex(pincode)) return res.status(400).send({ status: false, message: "pincode is not in valid format" })
+
+            } else return res.status(400).send({ status: false, message: "please provide shipping address" })
+
+
+            if (address.billing) {
+                const { street, city, pincode } = billing
+
+                if (!billing.street) return res.status(400).send({ status: false, message: "please provide billing street" })
+                if (!isValid(street)) return res.status(400).send({ status: false, message: "street is not valid" })
+
+
+                if (!billing.city) return res.status(400).send({ status: false, message: "please provide billing address" })
+                if (!isValid(city)) return res.status(400).send({ status: false, message: "city is not valid" })
+                if (!isValidName(city)) return res.status(400).send({ status: false, message: "city name is not in valid format" })
+
+
+                if (!billing.pincode) return res.status(400).send({ status: false, message: "please provide billing pincode" })
+                if (!isValid(pincode)) return res.status(400).send({ status: false, message: "billing pincode is not valid" })
+                if (!pincodeRegex(pincode)) return res.status(400).send({ status: false, message: "pincode is not in valid format" })
+
+            } else return res.status(400).send({ status: false, message: "please provide billing address" })
+
+        }
+        finalDetails.address = address
+
+
+        let savedData = await userModel.create(finalDetails)
+
+        return res.status(201).send({ status: true, msg: "user created successfully", data: savedData });
     }
 
-     if (!isValid(fname)) {
-        return res.status(400).send({ status: false, messege: "please provide name" })
-    }
-    if (!isValidName(fname)) {
-        return res.status(400).send({ status: false, messege: "please provide correct name" })
-    }
-    if (!isValid(lname)) {
-        return res.status(400).send({ status: false, messege: "please provide lname" })
-    }
-    if (!isValidName(lname)) {
-        return res.status(400).send({ status: false, messege: "please provide correct lname" })
-    }
-
-    if (!isValid(email)) {
-        return res.status(400).send({ status: false, messege: "please provide email" })
-    }
-
-    if (!isValidEmail(email)) {
-        return res.status(400).send({ status: false, message: "Please provide valid Email Address" });
-    }
-
-    let isDuplicateEmail = await userModel.findOne({ email })
-    if (isDuplicateEmail) {
-        return res.status(400).send({ status: false, message: "email already exists" })
-    }
-
-    if (!isValid(phone)) {
-        return res.status(400).send({ status: false, messege: "please provide phone number" })
-    }
-    if (!phoneRegex(phone)) {
-    return res.status(400).send({ status: false, msg: "phone number is invalid!" })  // 7th V used here
-    }
-    let duplicatePhone = await userModel.findOne({ phone })        // DB Call
-
-    if (duplicatePhone) return res.status(400).send({ status: false, msg: "phone number is already registered!" }) 
-    
-    if (!isValid(password)) {
-        return res.status(400).send({ status: false, messege: "please provide password" })
-    }
-
-    if (!passwordRegex(password)) {
-        return res.status(400).send({ status: false, messege: "invalid password" })
-    }
-
-    req.body.password = await bcrypt.hash(password,10);
-
-    // const salt= await bcrypt.genSalt(10)
-    // const hashedPassword = await bcrypt.hash(password,salt)
-    // req.body.password=hashedPassword
-    // console.log(password)
-    // console.log( req.body.password)
-    // console.log(hashedPassword)
-
-    address  = JSON.parse(req.body.address)
-    
-    
-
-    if(!address.shipping.street){
-        return res.status(400).send({status:false, message:"please provide shipping street"})
-    }
-    if(!address.shipping.city){
-        return res.status(400).send({status:false, message:"please provide shipping city"})
-    }
-    if(!address.shipping.pincode){
-        return res.status(400).send({status:false, message:"please provide shipping pincode"})
-    }
-    if (!pincodeRegex(address.shipping.pincode)) {
-        return res.status(400).send({ status: false, messege: "invalid shipping pincode" })
-    }
-    if(!address.billing.street){
-        return res.status(400).send({status:false, message:"please provide billing street"})
-    }
-    if(!address.billing.city){
-        return res.status(400).send({status:false, message:"please provide billing city"})
-    }
-    if(!address.billing.pincode){
-        return res.status(400).send({status:false, message:"please provide billing pincode"})
-    }
-    if (!pincodeRegex(address.billing.pincode)) {
-        return res.status(400).send({ status: false, messege: "invalid billing pincode" })
-    }
-
-     
-     finalDetails.address = address
-     console.log(finalDetails)
-    let savedData = await userModel.create(finalDetails)
-    return res.status(201).send({ status: true, msg: "user created successfully", data: savedData });
-    }
     catch (error) {
         return res.status(500).send({ status: false, message: error.message })
     }
 }
-
 //----------------------------------------login user----------------------------------------------------------------------------------------------------------------------------------------------------------/
 
 const loginUser = async function (req, res) {

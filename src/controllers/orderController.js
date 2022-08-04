@@ -92,11 +92,45 @@ const updateOrder = async function (req, res) {
         let order = await orderModel.findById(orderId)
         if (!order) return res.status(404).send({ status: false, message: 'No order found, with orderId' })
 
+        // let validStatus = ['pending', 'completed', 'cancled']
+        // if (!("status" in body)) return res.status(400).send({ status: false, message: 'please, give status key in body, it is required' })
+        // if (!isValid(status)) return res.status(400).send({ status: false, message: 'please do not leave status empty' })
+        // if (!validStatus.includes(status)) return res.status(400).send({ status: false, message: `status should be among  ${validStatus} ` })
+
+        if(order.isDeleted == true) {
+            return res.status(400).send({status: false, msg: "order is already deleted"})
+        }
         let validStatus = ['pending', 'completed', 'cancled']
         if (!("status" in body)) return res.status(400).send({ status: false, message: 'please, give status key in body, it is required' })
         if (!isValid(status)) return res.status(400).send({ status: false, message: 'please do not leave status empty' })
         if (!validStatus.includes(status)) return res.status(400).send({ status: false, message: `status should be among  ${validStatus} ` })
 
+
+            if(status == 'pending' ){
+                if (order.status=='completed'){
+                    return res.status(400).send({status:true,message:"order completed!! can't change to pending"})
+                }
+                if (order.status=='cancled'){
+                    return res.status(400).send({status:true,message:"order cancled!! can't change to pending"})
+                }
+                if (order.status=='pending'){
+                    return res.status(400).send({status:true,message:"order already pending!!"})
+                }
+            }
+
+            if(status == 'completed' ){
+                if (order.status=='completed'){
+                    return res.status(400).send({status:true,message:"order already completed!!"})
+                }
+                if (order.status=='cancled'){
+                    return res.status(400).send({status:true,message:"order cancled!! can't change to complete"})
+                }
+                
+            }
+
+            if (order.status =='cancled') {
+                return res.status(400).send({status:true, message:'order already cancled'})
+              }
 
         if (status == 'cancled') {
             if (order.cancellable === true) {
