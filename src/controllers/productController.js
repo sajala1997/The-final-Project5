@@ -72,7 +72,7 @@ const createProduct = async (req, res) => {
 
 
         let savedData = await productModel.create(data)
-        return res.status(201).send({ status: true, msg: "product created successfully", data: savedData });
+        return res.status(201).send({ status: true, message: 'Success', data: savedData });
     }
     catch (error) {
         return res.status(500).send({ status: false, msg: error.message });
@@ -97,7 +97,7 @@ const getByProductId = async (req, res) => {
             return res.status(404).send({ status: false, message: 'product not found' })
         }
 
-        return res.status(200).send({ status: true, message: 'Product found successfully', data: findProduct })
+        return res.status(200).send({ status: true, message: 'Success', data: findProduct })
     }
     catch (error) {
         return res.status(500).send({ status: false, message: error.message });
@@ -120,7 +120,7 @@ const deleteProduct = async function (req, res) {
             return res.status(400).send({ status: false, msg: "Product is already deleted" })
         let deletedProduct = await productModel.findByIdAndUpdate({ _id: product }, { $set: { isDeleted: true, deletedAt: new Date() } })
 
-        return res.status(200).send({ status: true, data: "Deleted successfully " })
+        return res.status(200).send({ status: true, message: "Deleted successfully " })
     }
     catch (err) {
         console.log(err.message)
@@ -161,7 +161,7 @@ const getProduct = async function (req, res) {
             filter.price = price
         }
 
-        if (data.priceLessThan!== undefined) {
+        if (data.priceLessThan!==undefined) {
             if (isNaN(parseInt(data.priceLessThan)))
                 return res.status(400).send({ status: false, message: "invalid price " })
 
@@ -186,7 +186,7 @@ const getProduct = async function (req, res) {
         //       if(!products.length==0){
         //          return res.status(404).send({ status:false,msg:"No product found with the given keys" });
         //   }
-        return res.status(200).send({ status: true, data: products })
+        return res.status(200).send({ status: true,message: 'Success', data: products })
     }
     catch (err) {
         res.status(500).send({ msg: err.message })
