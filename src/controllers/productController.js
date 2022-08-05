@@ -150,7 +150,7 @@ const getProduct = async function (req, res) {
 
         //---------filter by priceGreaterThan & priceLessThan
         //  console.log(parseInt(data.priceGreaterThan));
-        if (data.priceGreaterThan) {
+        if (data.priceGreaterThan!==undefined) {
 
             if (isNaN(parseInt(data.priceGreaterThan)))
                 return res.status(400).send({ status: false, message: "invalid price" })
@@ -161,7 +161,7 @@ const getProduct = async function (req, res) {
             filter.price = price
         }
 
-        if (data.priceLessThan) {
+        if (data.priceLessThan!== undefined) {
             if (isNaN(parseInt(data.priceLessThan)))
                 return res.status(400).send({ status: false, message: "invalid price " })
 
@@ -174,7 +174,7 @@ const getProduct = async function (req, res) {
 
 
         //-----------filter by name(title)
-        if (data.name) {
+        if (data.name!==undefined) {
             data.name.trim() && (filter.title = { '$regex': new RegExp(data.name), $options: "i" })
 
             if (!isValidName(name)) return res.status(400).send({ status: false, msg: "please provide valid name" });

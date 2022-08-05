@@ -80,7 +80,7 @@
             let errMsg = {}
             errMsg.userId = (req.params.userId===undefined)?"UserId required": validator.isValidObjectId(req.params.userId)?false:"Invalid UserId"
             errMsg.productId = (req.body.productId===undefined)?"ProductId Required!":validator.isValidObjectId(req.body.productId)?false:"Invalid ProductId"
-            errMsg.removeKey = (req.body.removeKey===undefined)?"removeKey Required!":!isNaN(parseInt(req.body.removeKey))&&(parseInt(req.body.removeKey)==0||parseInt(req.body.removeKey)==1)?false:"Invalid RemoveKey"
+            errMsg.removeProduct = (req.body.removeProduct===undefined)?"removeProduct Required!":!isNaN(parseInt(req.body.removeProduct))&&(parseInt(req.body.removeProduct)==0||parseInt(req.body.removeProduct)==1)?false:"Invalid removeProduct"
             Object.keys(errMsg).forEach(key => errMsg[key] === false && delete errMsg[key])
             if(Object.keys(errMsg).length!==0) return res.status(400).send({status:false,msg:errMsg})
 
@@ -98,7 +98,7 @@
             if(!(cart = await cartModel.findOne({userId:user._id})))
             return res.status(404).send({status:false,message:"Cart DoesNot Exist"})
             
-            if(req.body.removeKey==0){
+            if(req.body.removeProduct==0){
 
                 let productQuantity;
             
@@ -124,7 +124,7 @@
 
 
 
-// removeKey==1
+// removeProduct==1
             cart = await cartModel.findOne({userId:user._id});
             let productQuantity;
             cart.items.forEach((x)=>{
