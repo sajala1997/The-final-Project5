@@ -16,6 +16,10 @@ const createOrder = async function (req, res) {
         if (!keyValue(body)) return res.status(400).send({ status: false, message: 'please enter body' })
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: 'Invalid userId' })
        // if (!(await userModel.findById(userId))) return res.status(404).send({ status: false, message: 'No user found, with userId' })
+
+       if (userId !== req.loggedInUserId)
+       return res.status(403).send({ status: false, msg: "Not Authorised" })
+
         if (!(await cartModel.findOne({ userId }))) return res.status(404).send({ status: false, message: 'No cart found, with userId' })
 
         if (!("cartId" in body)) return res.status(400).send({ status: false, message: 'please, give cartId in body, it is required' })
@@ -23,6 +27,8 @@ const createOrder = async function (req, res) {
         if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: 'Invalid cartId' })
         let cart = await cartModel.findById(cartId)
         if (!cart) return res.status(404).send({ status: false, message: 'No cart found, with cartId' })
+
+        if(await orderModel.findOne({ userId : userId, cartId: cartId })) return res.status(400).send({ status: false, message: 'order is already placed for this id' })
         let items = cart.items;
         let totalPrice = cart.totalPrice;
         let totalItems = cart.totalItems;
@@ -60,8 +66,11 @@ const updateOrder = async function (req, res) {
 
         if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: 'Invalid userId' })
         //if (!(await userModel.findById(userId))) return res.status(404).send({ status: false, message: 'No user found, with userId' })
-        if (!(await orderModel.findOne({ userId }))) return res.status(404).send({ status: false, message: 'No order found, with userId' })
 
+        if (userId !== req.loggedInUserId)
+        return res.status(403).send({ status: false, msg: "Not Authorised" })
+
+        if (!(await orderModel.findOne({ userId }))) return res.status(404).send({ status: false, message: 'No order found, with userId' })
 
         if (!("orderId" in body)) return res.status(400).send({ status: false, message: 'please, give orderId in body, it is required' })
         if (!isValid(orderId)) return res.status(400).send({ status: false, message: 'please do not leave orderId empty' })
