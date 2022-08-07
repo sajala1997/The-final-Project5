@@ -100,6 +100,7 @@ const passwordRegex = function checkPassword(password)
   // }
   const isValidSize = (Size) => {
     let correctSize = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+    console.log(Size)
     return (correctSize.includes(Size))
 }
 
@@ -108,7 +109,6 @@ const isVerifyNumber = function (number) {
     let   trimNumber=number.trim()
     return regex.test(trimNumber)
 } 
-
 
   // const isValidAvailableSizes = (title) => {
   //   return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1

@@ -141,13 +141,15 @@ const getProduct = async function (req, res) {
         let price = {}
 
         //-----------filter by size
-        if (data.size !== undefined && data.size.split()) {
-            (filter.availableSizes = { $in: data.size.split(",").map(e => e.trim().toUpperCase()) })
+        if (data.size !== undefined && data.size.trim()) {
 
-            if (!isValidSize(size))
-                return res.status(400).send({ status: false, message: "please Provide Available Size from [S, XS ,M ,X, L ,XXL, XL]" });
+        let availableSizes = data.size.split(',').map(x => x.trim().toUpperCase())
+        if (availableSizes.map(x => isValidSize(x)).filter(x => x === false).length !== 0)
+            return res.status(400).send({ status: false, message: "Size Should be Among  S,XS,M,X,L,XXL,XL" })
+       
+        filter["availableSizes"]={$in:availableSizes}
         }
-
+       
         //---------filter by priceGreaterThan & priceLessThan
         //  console.log(parseInt(data.priceGreaterThan));
         if (data.priceGreaterThan!==undefined) {
