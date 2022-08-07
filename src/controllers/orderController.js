@@ -2,7 +2,7 @@ const userModel = require('../models/orderModel');
 const productModel = require('../models/productModel');
 const cartModel = require('../models/cartModel');
 const orderModel = require('../models/orderModel');
-const { keyValue, isValid, isValidName, priceRegex, isValidObjectId, isValidSize, isVerifyNumber } = require("../validators/validator");
+const { keyValue, isValid,  isValidObjectId } = require("../validators/validator");
 
 
 
@@ -25,10 +25,13 @@ const createOrder = async function (req, res) {
         if (!("cartId" in body)) return res.status(400).send({ status: false, message: 'please, give cartId in body, it is required' })
         if (!isValid(cartId)) return res.status(400).send({ status: false, message: 'please do not leave cartId empty' })
         if (!isValidObjectId(cartId)) return res.status(400).send({ status: false, message: 'Invalid cartId' })
+
         let cart = await cartModel.findById(cartId)
         if (!cart) return res.status(404).send({ status: false, message: 'No cart found, with cartId' })
 
-        if (await orderModel.findOne({ cartId: cartId })) return res.status(400).send({ status: false, message: 'order is already placed for this id' })
+        if (await orderModel.findOne({ cartId: cartId }))
+         return res.status(400).send({ status: false, message: 'order is already placed for this id' })
+         
         let items = cart.items;
         let totalPrice = cart.totalPrice;
         let totalItems = cart.totalItems;
