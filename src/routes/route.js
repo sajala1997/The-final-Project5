@@ -21,11 +21,12 @@ router.get('/products',productController.getProduct)
 router.put('/products/:productId', productController.updateProduct)
 
 // Cart
-router.post('/users/:userId/cart',cartController.addToCart);
-router.put('/users/:userId/cart',cartController.updateCart);
-router.get('/users/:userId/cart',cartController.getCart);
-router.delete('/users/:userId/cart',cartController.deleteCart);
+router.post('/users/:userId/cart',AuthenticationCheck,cartController.addToCart);
+router.put('/users/:userId/cart',AuthenticationCheck,cartController.updateCart);
+router.get('/users/:userId/cart',AuthenticationCheck,cartController.getCart);
+router.delete('/users/:userId/cart',AuthenticationCheck,cartController.deleteCart);
 
+//order
 router.post('/users/:userId/orders',AuthenticationCheck,orderController.createOrder);
 router.put('/users/:userId/orders',AuthenticationCheck,orderController.updateOrder)
 

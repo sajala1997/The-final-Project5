@@ -15,10 +15,7 @@ const cartSchema = new mongoose.Schema( {
         require:true,
         comment:"Holds total number of items in the cart" 
     },
-    totalQuantity:{
-        type:Number,
-        require:true,
-    },
+    
     items:[
         {productId:{type:mongoose.Schema.ObjectId,ref:'Product',require:true,unique:true}    // [{pid1,pqnt1},{pid2,pqnt2},{pid3,pqnt3},{pid4,pqnt4},v]
         ,quantity:{type : Number,require:true,min:1},_id:false}
@@ -33,8 +30,6 @@ const cartSchema = new mongoose.Schema( {
     }
 }
     ,{ timestamps: true });
-
-// 
 
 
     module.exports = mongoose.model('Cart',cartSchema);
