@@ -77,6 +77,7 @@ const createUser = async (req, res) => {
         req.body.password = await bcrypt.hash(password, 10);
 
         //validate files
+        console.log(files)
         if (files && files.length > 0) {
             let uploadedFileURL = await uploadFile(files[0])
             finalDetails["profileImage"] = uploadedFileURL

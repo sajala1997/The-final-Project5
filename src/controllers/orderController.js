@@ -29,8 +29,8 @@ const createOrder = async function (req, res) {
         let cart = await cartModel.findById(cartId)
         if (!cart) return res.status(404).send({ status: false, message: 'No cart found, with cartId' })
 
-        if (await orderModel.findOne({ cartId: cartId }))
-         return res.status(400).send({ status: false, message: 'order is already placed for this id' })
+        // if (await orderModel.findOne({ cartId: cartId }))
+        //  return res.status(400).send({ status: false, message: 'order is already placed for this id' })
          
         let items = cart.items;
         let totalPrice = cart.totalPrice;

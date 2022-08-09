@@ -148,7 +148,9 @@ const getProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "Size Should be Among  S,XS,M,X,L,XXL,XL" })
        
         filter["availableSizes"]={$in:availableSizes}
+        console.log({$in:availableSizes})
         }
+        
        
         //---------filter by priceGreaterThan & priceLessThan
         //  console.log(parseInt(data.priceGreaterThan));
